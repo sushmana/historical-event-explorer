@@ -19,11 +19,17 @@ export const HistoricalSlice = createSlice({
             },
             setBirth:(state, action)=>{
                   state.births.push(action.payload.births);
+            },
+            clearEvent:(state,action)=>{
+                  state.events = [];
+            },
+            clearBirth:(state,action)=>{
+                  state.births = [];
             }
 
       }
 });
 
-export const {getEvent, setEvent, getBirth, setBirth} = HistoricalSlice.actions;
+export const {getEvent, setEvent, getBirth, setBirth, clearEvent, clearBirth} = HistoricalSlice.actions;
 
 export default HistoricalSlice.reducer;

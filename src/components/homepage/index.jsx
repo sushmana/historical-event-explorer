@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { FaBookmark, FaRegBookmark } from "react-icons/fa6";
-import { MdLightMode, MdDarkMode } from "react-icons/md";
-import { getEvent, getBirth } from "/src/redux/slice/historicalSlice";
+import { MdLightMode, MdDarkMode, MdOutlineConstruction } from "react-icons/md";
+import { getEvent, getBirth, clearEvent, clearBirth } from "/src/redux/slice/historicalSlice";
 import Modal from '../common/modal';
-import DatePicker from 'react-date-picker';
-import { current } from "@reduxjs/toolkit";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+import { setUseStrictShallowCopy } from "immer";
 
 const Homepage = () => {
   const dispatch = useDispatch();
@@ -17,33 +18,53 @@ const Homepage = () => {
 
   const [bookmarkedItem, setBookmarkedItem] = useState();
   const [currentDate, setCurrentDate] = useState(new Date());
-  console.log(currentDate);
+
   const [generateTitle, setGenerateTitle] = useState();
   const month = {
-    0: "January",
-    1: "February",
-    2: "March",
-    3: "April",
-    4: "May",
-    5: "June",
-    6: "July",
-    7: "August",
-    8: "September",
-    9: "October",
-    10: "November",
-    11: "December",
+    1: "January",
+    2: "February",
+    3: "March",
+    4: "April",
+    5: "May",
+    6: "June",
+    7: "July",
+    8: "August",
+    9: "September",
+    10: "October",
+    11: "November",
+    12: "December",
   };
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showEvents, setShowEvents] = useState(false);
   const [showBirths, setShowBirths] = useState(false);
   const [openModal, setOpenModal] = useState(false);
-  const [selectedDDMM, setSelectedDDMM] = useState({ DD:"" , MM:"",});
+  const [selectedDDMM, setSelectedDDMM] = useState({ DD:currentDate.getDate() , MM:currentDate.getMonth(),});
   const [eventDetail, setEventDetail] = useState();  
   const [birthDetail, setBirthDetail] = useState();
-  const handleBookmark = () => {
-    // setBookmarkedItem()
-    localStorage.setItem("bookmarked", bookmarkedItem);
-  };
+  const [isAlreadyBookmarked,setIsAlreadyBookmarked] = useState(false);
+const handleBookmark = () => {
+  const storedBookmarks = JSON.parse(localStorage.getItem("bookmarked")) || [];
+
+  setIsAlreadyBookmarked(storedBookmarks.some(
+    (b) => new Date(b.date).toDateString() === new Date(currentDate).toDateString()
+  ));
+
+  if (!isAlreadyBookmarked) {
+    const newBookmark = {
+      date: currentDate,
+      event: events,
+      birth: births,
+    };
+
+    const updatedBookmarks = [...storedBookmarks, newBookmark];
+
+    setBookmarkedItem(updatedBookmarks); // update local state
+    localStorage.setItem("bookmarked", JSON.stringify(updatedBookmarks)); // update storage
+  } else {
+    console.log("This date is already bookmarked.");
+  }
+};
+
 
   const handleTheme = () => {};
    
@@ -56,18 +77,24 @@ const Homepage = () => {
   useEffect(() => {
     if (currentDate) {
     const day = String(currentDate.getDate());
-    const mm = String(currentDate.getMonth());
+    const mm = String(currentDate.getMonth()+1);
 
     setGenerateTitle(`Today is ${day} ${month[mm]}`);
     setSelectedDDMM({ DD: day, MM: mm });
     }
+    dispatch(clearEvent());
+    dispatch(clearBirth());
+    dispatch(getEvent(selectedDDMM));
+    dispatch(getBirth(selectedDDMM));
   }, [currentDate]);
 
   useEffect(()=>{
     if(selectedDDMM.DD === "" || selectedDDMM.MM === "") return;
+    dispatch(clearEvent());
+    dispatch(clearBirth());
     dispatch(getEvent(selectedDDMM));
     dispatch(getBirth(selectedDDMM));
-  },[selectedDDMM])
+  },[])
 
   const getEventDetail = (index) =>{
     const detail = events.find((_, i)=> i===index)
@@ -96,6 +123,12 @@ const Homepage = () => {
     setShowBirths(true); 
     setShowDatePicker(false); 
   }
+
+  const handleDateSelect = (date) =>{
+  // Optionally close the date picker modal after selection
+  setShowDatePicker(false);
+  }
+
   return (
     <>
       <div className="text-center lg:text-2xl  h-screen w-100% lg:w-2xl ">
@@ -110,7 +143,8 @@ const Homepage = () => {
           (showDatePicker || showEvents || showBirths) && 
           <Modal openModal={openModal} closeModal={()=> setOpenModal(false)} showEvents={showEvents} showBirths={showBirths} showDatePicker={showDatePicker}>
             <div className="mt-[100px]">
-            {/* {showDatePicker && <DatePicker value={currentDate}  onClick={setSelectedDDMM}/>} */}
+            {showDatePicker &&
+             <DatePicker inline className= "text-black" selected={currentDate} onChange={(date)=>setCurrentDate(date)} onSelect={(date)=>handleDateSelect(date)}/>}
             {showEvents && (
               <>
               <div className="grid grid-cols-2 gap-4 text-black">
@@ -185,7 +219,7 @@ const Homepage = () => {
                 Events
               </label>
               <div className="mt-2.5">
-                <p
+                <div
                   className="block w-full lg:w-[500px] lg:h-auto rounded-md bg-pink-200 px-3.5 py-2 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600"
                 >
                   {events.map((eve, index)=>{
@@ -198,7 +232,7 @@ const Homepage = () => {
                     </div>
                     )
                   })}
-                </p>
+                </div>
               </div>
             </div>
             <div>
@@ -206,7 +240,7 @@ const Homepage = () => {
                 Births
               </label>
               <div className="mt-2.5">
-                <p
+                <div
                  className="block w-full lg:w-[500px] lg:h-auto rounded-md bg-pink-200 px-3.5 py-2 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600"
                 >
                   {births.map((bir, index)=>{
@@ -219,7 +253,7 @@ const Homepage = () => {
                     </div>
                     )
                   })}
-                </p>
+                </div>
               </div>
             </div>
           </div>
