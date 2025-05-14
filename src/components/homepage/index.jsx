@@ -184,7 +184,7 @@ const handleBookmark = () => {
                 <label className="font-semibold">Description:</label>
                 <h2>{birthDetail.description}</h2>
 
-                <label className=" col-span-2 font-semibold underline"> Wikipedia </label>
+                <label className=" col-span-2 font-semibold underline hover:cursor-grabs hover:scale-120"> Wikipedia </label>
                 {
                   birthDetail.wikipedia.map((wik, index)=>{
                     return(
