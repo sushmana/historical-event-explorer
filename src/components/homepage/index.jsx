@@ -210,7 +210,7 @@ const handleBookmark = () => {
           <div className="mt-2.5">
             <label
               className="block w-full rounded-md bg-pink-200 px-3.5 py-2 text-base text-gray-900 font-extrabold outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600">
-            Today's Highlight
+            Today's Highlight show random
             </label>
           </div>
           <div className="grid grid-cols-1 gap-x-8 lg:gap-x-[300px] lg:ml-[-250px] gap-y-6 sm:grid-cols-2 mt-3 basis-1/2">
